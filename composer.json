@@ -1,0 +1,20 @@
+{
+    "name": "felip/filterdocs",
+    "autoload": {
+        "psr-4": {
+             "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "felippe.flip",
+            "email": "felippe.flip@gmail.com"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.15",
+        "slim/psr7": "^1.7",
+        "slim/php-view": "^3.4",
+        "phpoffice/phpspreadsheet": "^5.1"
+    }
+}
