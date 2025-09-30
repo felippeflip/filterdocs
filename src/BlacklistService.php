@@ -40,6 +40,8 @@ class BlacklistService
                 $blacklist[] = $row['telefone3'];
             }
         }
+
+      //  var_dump($blacklist); // Debug: Verifique os números coletados
         
         // Remova duplicatas e reindexe o array
         return array_values(array_unique($blacklist));
