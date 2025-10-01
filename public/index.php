@@ -19,6 +19,26 @@ $app = AppFactory::create();
 $app->addRoutingMiddleware();
 
 
+// Adicionar o Middleware de Erro
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+// Manipulador de Erro para rotas não encontradas
+$errorMiddleware->setErrorHandler(
+    \Slim\Exception\HttpNotFoundException::class,
+    function (
+        \Psr\Http\Message\ServerRequestInterface $request,
+        \Throwable $exception,
+        bool $displayErrorDetails,
+        bool $logErrors,
+        bool $logErrorDetails
+    ) use ($app) {
+        $response = $app->getResponseFactory()->createResponse();
+        // Redireciona para a rota principal (/) com status 302
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+);
+
+
 // Rota GET para exibir o formulário da blacklist
 $app->get('/blacklist/create', function (Request $request, Response $response, $args) {
     $view = new PhpRenderer(__DIR__ . '/../templates/'); // Instancia a classe correta
@@ -33,10 +53,33 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
         return preg_replace('/[^0-9]/', '', $phoneNumber);
     };
 
+    // Funcao para validar o formato do telefone
+    $validatePhoneNumber = function(string $phoneNumber): bool {
+        $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+        return !empty($cleaned) && (strlen($cleaned) >= 10);
+    };
+
     // Dados do formulário
     $data = $request->getParsedBody();
+    
+    // Validar cada campo de telefone se não estiver vazio
+    $phoneFields = ['telefone', 'telefone1', 'telefone2', 'telefone3'];
+    $invalidFields = [];
 
-    // Limpar e converter os campos
+    foreach ($phoneFields as $field) {
+        $value = $data[$field] ?? '';
+        if (!empty($value) && !$validatePhoneNumber($value)) {
+            $invalidFields[] = $field;
+        }
+    }
+
+    if (!empty($invalidFields)) {
+        $status = "Erro: Os seguintes campos de telefone são inválidos: " . implode(', ', $invalidFields) . ". Verifique se eles contêm pelo menos 10 dígitos.";
+        $view = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates/');
+        return $view->render($response, 'blacklist_form.php', ['status' => $status]);
+    }
+
+    // Se a validacao passar, continue com o processamento
     $nome = mb_strtoupper($data['nome'] ?? '') ?? '';
     $telefone = $cleanPhoneNumber($data['telefone'] ?? '');
     $telefone1 = $cleanPhoneNumber($data['telefone1'] ?? '');
@@ -52,8 +95,7 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
     $stmt = $pdo->prepare($sql);
     
     try {
-        // A ordem dos parâmetros no execute() deve ser a mesma da query SQL
-        $stmt->execute([$nome, $telefone, $telefone1, $telefone2, $telefone3, $email, $bairro, $solicitante, $canal_solicitacao]);
+        $stmt->execute([$nome, $bairro, $telefone, $telefone1, $telefone2, $telefone3, $email, $solicitante, $canal_solicitacao]);
         $status = 'Item adicionado com sucesso!';
     } catch (\PDOException $e) {
         $status = 'Erro ao adicionar item: ' . $e->getMessage();
@@ -124,12 +166,12 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
         }
         
         // 6.3. Se ainda não estiver, verifica o nome (coluna C)
-        if (!$isBlacklisted) {
-            $nome = strtolower($row['C'] ?? '');
-            if (!empty($nome) && isset($optimizedBlacklist['names'][$nome])) {
-                $isBlacklisted = true;
-            }
-        }
+       // if (!$isBlacklisted) {
+       //     $nome = strtolower($row['C'] ?? '');
+       //     if (!empty($nome) && isset($optimizedBlacklist['names'][$nome])) {
+       //         $isBlacklisted = true;
+       //    }
+       // }
 
         // 7. Se a linha não for encontrada na blacklist, adicione-a à nova planilha
         if (!$isBlacklisted) {

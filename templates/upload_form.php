@@ -45,6 +45,7 @@
 
     <div class="container mt-5">
         <h1 class="mb-4 text-center">Filtrar Planilha do Excel</h1>
+        <h6 class="mb-4 text-center">A planilha será filtrada, e todas as linhas que contiverem telefones ou e-mails da blacklist serão removidas.</h6>
         
         <?php if (isset($status)): ?>
             <div class="alert alert-info" role="alert">
@@ -60,6 +61,9 @@
             
             <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-primary">Filtrar e Baixar</button>
+            </div>
+            <div class="d-grid mt-4">
+                <a href="/blacklist/create" class="btn btn-secondary">Cadastrar Contato na BlackList</a>
             </div>
         </form>
     </div>

@@ -26,7 +26,7 @@ class BlacklistService
 
         $phoneBlacklist = [];
         $emailBlacklist = [];
-        $nameBlacklist = [];
+      //  $nameBlacklist = [];
 
         foreach ($all_data_raw as $row) {
             // Adiciona telefones à lista
@@ -49,15 +49,15 @@ class BlacklistService
             }
             
             // Adiciona nome à lista
-            if (!empty($row['nome'])) {
-                $nameBlacklist[] = strtolower($row['nome']); // Converte para minúsculas para busca
-            }
+          //  if (!empty($row['nome'])) {
+          //      $nameBlacklist[] = strtolower($row['nome']); // Converte para minúsculas para busca
+          //  }
         }
 
         return [
             'phones' => array_flip(array_unique($phoneBlacklist)),
             'emails' => array_flip(array_unique($emailBlacklist)),
-            'names' => array_flip(array_unique($nameBlacklist))
+          //  'names' => array_flip(array_unique($nameBlacklist))
         ];
     }
 }
