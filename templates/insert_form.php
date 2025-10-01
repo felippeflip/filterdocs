@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filtrar Planilha</title>
+    <title>Carregar Planilha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .container { max-width: 600px; }
@@ -40,11 +40,11 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
         <h3 class="mt-3">Processando...</h3>
-        <p>Aguarde enquanto a planilha é filtrada.</p>
+        <p>Aguarde enquanto os dados são inseridos no banco de dados...</p>
     </div>
 
     <div class="container mt-5">
-        <h1 class="mb-4 text-center">Filtrar Planilha do Excel</h1>
+        <h1 class="mb-4 text-center">Carregar Planilha do Excel (BlackList)</h1>
         
         <?php if (isset($status)): ?>
             <div class="alert alert-info" role="alert">
@@ -52,14 +52,14 @@
             </div>
         <?php endif; ?>
 
-        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" action="/blacklist/insert" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="excelFile" class="form-label">Selecione o arquivo Excel (.xlsx ou .xls)</label>
                 <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
             </div>
             
             <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary">Filtrar e Baixar</button>
+                <button type="submit" class="btn btn-primary">Processar</button>
             </div>
         </form>
     </div>
@@ -71,9 +71,9 @@
             
             // Adiciona um tempo limite para remover o overlay
             // após o início do download. Ajuste o tempo se necessário.
-            setTimeout(function() {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }, 5000); // 5000 milissegundos = 5 segundos
+           // setTimeout(function() {
+           //     document.getElementById('loadingOverlay').style.display = 'none';
+           // }, 5000); // 5000 milissegundos = 5 segundos
         });
     </script>
 </body>

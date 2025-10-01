@@ -15,35 +15,49 @@ class BlacklistService
     }
 
     /**
-     * Busca todos os números de telefone da tabela blacklist.
+     * Busca todos os telefones, emails e nomes da blacklist,
+     * e retorna um array de listas otimizadas para busca.
      * @return array
      */
-    public function getBlacklistPhones(): array
+    public function getBlacklistData(): array
     {
-        // 1. Busque todos os telefones de todas as colunas
-        $stmt = $this->pdo->query('SELECT telefone, telefone1, telefone2, telefone3 FROM blacklist');
-        $all_phones_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->query('SELECT nome, email, telefone, telefone1, telefone2, telefone3 FROM blacklist');
+        $all_data_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 2. Crie um array simples e limpo com todos os números
-        $blacklist = [];
-        foreach ($all_phones_raw as $row) {
+        $phoneBlacklist = [];
+        $emailBlacklist = [];
+        $nameBlacklist = [];
+
+        foreach ($all_data_raw as $row) {
+            // Adiciona telefones à lista
             if (!empty($row['telefone'])) {
-                $blacklist[] = $row['telefone'];
+                $phoneBlacklist[] = $row['telefone'];
             }
             if (!empty($row['telefone1'])) {
-                $blacklist[] = $row['telefone1'];
+                $phoneBlacklist[] = $row['telefone1'];
             }
             if (!empty($row['telefone2'])) {
-                $blacklist[] = $row['telefone2'];
+                $phoneBlacklist[] = $row['telefone2'];
             }
             if (!empty($row['telefone3'])) {
-                $blacklist[] = $row['telefone3'];
+                $phoneBlacklist[] = $row['telefone3'];
+            }
+            
+            // Adiciona email à lista
+            if (!empty($row['email'])) {
+                $emailBlacklist[] = strtolower($row['email']); // Converte para minúsculas para busca
+            }
+            
+            // Adiciona nome à lista
+            if (!empty($row['nome'])) {
+                $nameBlacklist[] = strtolower($row['nome']); // Converte para minúsculas para busca
             }
         }
 
-      //  var_dump($blacklist); // Debug: Verifique os números coletados
-        
-        // Remova duplicatas e reindexe o array
-        return array_values(array_unique($blacklist));
+        return [
+            'phones' => array_flip(array_unique($phoneBlacklist)),
+            'emails' => array_flip(array_unique($emailBlacklist)),
+            'names' => array_flip(array_unique($nameBlacklist))
+        ];
     }
 }
