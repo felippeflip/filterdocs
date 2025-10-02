@@ -30,19 +30,19 @@
                     <input type="text" class="form-control" id="bairro" name="bairro">
                 </div>
                <div class="col-md-6">
-                    <label for="telefone" class="form-label">Telefone (com DDD)</label>
+                    <label for="telefone" class="form-label">Telefone (com DDD Ex:19981561866)</label>
                     <input type="tel" class="form-control" id="telefone" name="telefone" pattern="[0-9]{10,11}" inputmode="numeric">
                 </div>
                 <div class="col-md-6">
-                    <label for="telefone1" class="form-label">Telefone 1 (com DDD)</label>
+                    <label for="telefone1" class="form-label">Telefone 1 (com DDD Ex:19981561866)</label>
                     <input type="tel" class="form-control" id="telefone1" name="telefone1" pattern="[0-9]{10,11}" inputmode="numeric">
                 </div>
                 <div class="col-md-6">
-                    <label for="telefone2" class="form-label">Telefone 2 (com DDD)</label>
+                    <label for="telefone2" class="form-label">Telefone 2 (com DDD Ex:19981561866)</label>
                     <input type="tel" class="form-control" id="telefone2" name="telefone2" pattern="[0-9]{10,11}" inputmode="numeric">
                 </div>
                 <div class="col-md-6">
-                    <label for="telefone3" class="form-label">Telefone 3 (com DDD)</label>
+                    <label for="telefone3" class="form-label">Telefone 3 (com DDD Ex:19981561866)</label>
                     <input type="tel" class="form-control" id="telefone3" name="telefone3" pattern="[0-9]{10,11}" inputmode="numeric">
                 </div>
                 <div class="col-md-6">

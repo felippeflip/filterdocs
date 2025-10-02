@@ -4,12 +4,13 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8
+class ComposerStaticInit2c41f1680c8af5d818dbc65e1bb8a76d
 {
     public static $files = array (
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -20,6 +21,7 @@ class ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8
         'S' => 
         array (
             'Symfony\\Polyfill\\Php80\\' => 23,
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Slim\\Views\\' => 11,
             'Slim\\Psr7\\' => 10,
             'Slim\\' => 5,
@@ -63,6 +65,10 @@ class ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
         ),
+        'Symfony\\Polyfill\\Mbstring\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
         'Slim\\Views\\' => 
         array (
             0 => __DIR__ . '/..' . '/slim/php-view/src',
@@ -85,8 +91,8 @@ class ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8
         ),
         'Psr\\Http\\Server\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
-            1 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+            0 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+            1 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
@@ -143,9 +149,9 @@ class ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitfdc1c71a375a3cc5078d4691a96f2ea8::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit2c41f1680c8af5d818dbc65e1bb8a76d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit2c41f1680c8af5d818dbc65e1bb8a76d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit2c41f1680c8af5d818dbc65e1bb8a76d::$classMap;
 
         }, null, ClassLoader::class);
     }
