@@ -17,6 +17,6 @@ CREATE TABLE filterdocs.blacklist (
   email varchar(50),
   dt_inclusao datetime,
   solicitante VARCHAR(50),
-  canal_solicitacao VARCHAR(50);
+  canal_solicitacao VARCHAR(50),
   PRIMARY KEY (`id`)
 );
