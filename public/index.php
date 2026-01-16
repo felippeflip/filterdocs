@@ -20,8 +20,9 @@ error_reporting(E_ALL);
 
 $app = AppFactory::create();
 
-// Ajuste para rodar corretamente dentro da pasta /filterdocs/public no XAMPP
-$app->setBasePath('/filterdocs/public');
+// Auto-detect base path
+$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+$app->setBasePath($basePath);
 
 // Adiciona este middleware de roteamento para evitar problemas
 $app->addRoutingMiddleware();
@@ -39,22 +40,22 @@ $errorMiddleware->setErrorHandler(
         bool $displayErrorDetails,
         bool $logErrors,
         bool $logErrorDetails
-    ) use ($app) {
+    ) use ($app, $basePath) {
         $response = $app->getResponseFactory()->createResponse();
         // Redireciona para a rota principal (/) com status 302
-        return $response->withHeader('Location', '/')->withStatus(302);
+        return $response->withHeader('Location', $basePath . '/')->withStatus(302);
     }
 );
 
 
 // Rota GET para exibir o formulário da blacklist
-$app->get('/blacklist/create', function (Request $request, Response $response, $args) {
+$app->get('/blacklist/create', function (Request $request, Response $response, $args) use ($basePath) {
     $view = new PhpRenderer(__DIR__ . '/../templates/'); // Instancia a classe correta
-    return $view->render($response, 'blacklist_form.php');
+    return $view->render($response, 'blacklist_form.php', ['basePath' => $basePath]);
 });
 
 // Rota POST para processar os dados
-$app->post('/blacklist', function (Request $request, Response $response, $args) use ($pdo) {
+$app->post('/blacklist', function (Request $request, Response $response, $args) use ($pdo, $basePath) {
 
     // Funcao para limpar caracteres especiais de numeros de telefone
     $cleanPhoneNumber = function(string $phoneNumber): string {
@@ -84,7 +85,7 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
     if (!empty($invalidFields)) {
         $status = "Erro: Os seguintes campos de telefone são inválidos: " . implode(', ', $invalidFields) . ". Verifique se eles contêm pelo menos 10 dígitos.";
         $view = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates/');
-        return $view->render($response, 'blacklist_form.php', ['status' => $status]);
+        return $view->render($response, 'blacklist_form.php', ['status' => $status, 'basePath' => $basePath]);
     }
 
     // Se a validacao passar, continue com o processamento
@@ -111,14 +112,14 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
     
     // Retorna para o formulário com uma mensagem de status
     $view = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates/');
-    return $view->render($response, 'blacklist_form.php', ['status' => $status]);
+    return $view->render($response, 'blacklist_form.php', ['status' => $status, 'basePath' => $basePath]);
 });
 
 
 // Rota GET para exibir o formulário de upload
-$app->get('/', function (Request $request, Response $response, $args) {
+$app->get('/', function (Request $request, Response $response, $args) use ($basePath) {
     $view = new PhpRenderer(__DIR__ . '/../templates/');
-    return $view->render($response, 'upload_form.php');
+    return $view->render($response, 'upload_form.php', ['basePath' => $basePath]);
 });
 
 
@@ -209,7 +210,7 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
 
 
 // Rota GET para exibir o formulário de inserção
-$app->get('/blacklist/insert/form', function (Request $request, Response $response) {
+$app->get('/blacklist/insert/form', function (Request $request, Response $response) use ($basePath) {
     $view = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates/');
 
     // Pega a mensagem de status da sessão, se existir
@@ -217,12 +218,12 @@ $app->get('/blacklist/insert/form', function (Request $request, Response $respon
     // Limpa a variável da sessão para não mostrar a mensagem novamente
     //unset($_SESSION['status']);
 
-    return $view->render($response, 'insert_form.php', ['status' => $status]);
+    return $view->render($response, 'insert_form.php', ['status' => $status, 'basePath' => $basePath]);
 });
 
 
 // Rota POST para realizar o upload e inserir os dados da planilha na blacklist
-$app->post('/blacklist/insert', function (Request $request, Response $response, $args) use ($pdo) {
+$app->post('/blacklist/insert', function (Request $request, Response $response, $args) use ($pdo, $basePath) {
 
     // 1. Obter o arquivo enviado
     $uploadedFiles = $request->getUploadedFiles();
@@ -231,7 +232,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
     if (!$uploadedFile || $uploadedFile->getError() !== UPLOAD_ERR_OK) {
         $status = "Erro no upload do arquivo. Por favor, selecione um arquivo válido.";
         $view = new PhpRenderer(__DIR__ . '/../templates/');
-        return $view->render($response, 'insert_form.php', ['status' => $status]);
+        return $view->render($response, 'insert_form.php', ['status' => $status, 'basePath' => $basePath]);
     }
     
     // Funcao para limpar caracteres especiais de numeros de telefone
@@ -247,7 +248,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
     } catch (\Exception $e) {
         $status = "Erro ao ler o arquivo Excel: " . $e->getMessage();
         $view = new PhpRenderer(__DIR__ . '/../templates/');
-        return $view->render($response, 'insert_form.php', ['status' => $status]);
+        return $view->render($response, 'insert_form.php', ['status' => $status, 'basePath' => $basePath]);
     }
     
     // 3. Preparar a query de inserção para segurança, com as novas colunas
@@ -297,7 +298,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
     }
     
     // Redireciona para a rota GET
-    return $response->withHeader('Location', '/blacklist/insert/form')->withStatus(302);
+    return $response->withHeader('Location', $basePath . '/blacklist/insert/form')->withStatus(302);
 });
 
 $app->run();

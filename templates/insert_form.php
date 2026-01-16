@@ -52,7 +52,7 @@
             </div>
         <?php endif; ?>
 
-        <form id="uploadForm" action="/blacklist/insert" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" action="<?= $basePath ?>/blacklist/insert" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="excelFile" class="form-label">Selecione o arquivo Excel (.xlsx ou .xls)</label>
                 <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>

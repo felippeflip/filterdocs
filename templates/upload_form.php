@@ -53,7 +53,7 @@
             </div>
         <?php endif; ?>
 
-        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" action="<?= $basePath ?>/upload" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="excelFile" class="form-label">Selecione o arquivo Excel (.xlsx ou .xls)</label>
                 <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
@@ -63,7 +63,7 @@
                 <button type="submit" class="btn btn-primary">Filtrar e Baixar</button>
             </div>
             <div class="d-grid mt-4">
-                <a href="/blacklist/create" class="btn btn-secondary">Cadastrar Contato na BlackList</a>
+                <a href="<?= $basePath ?>/blacklist/create" class="btn btn-secondary">Cadastrar Contato na BlackList</a>
             </div>
         </form>
     </div>

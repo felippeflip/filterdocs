@@ -19,7 +19,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="/blacklist" method="POST">
+        <form action="<?= $basePath ?>/blacklist" method="POST">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="nome" class="form-label">Nome</label>
@@ -63,7 +63,7 @@
                 <button type="submit" class="btn btn-primary">Adicionar</button>
             </div>
             <div class="d-grid mt-4">
-                <a href="/" class="btn btn-secondary">Voltar</a>
+                <a href="<?= $basePath ?>/" class="btn btn-secondary">Voltar</a>
             </div>
         </form>
     </div>
