@@ -11,6 +11,11 @@ use Slim\Views\PhpRenderer;
 
 
 require __DIR__ . '/../vendor/autoload.php';
+
+// Carregar variáveis de ambiente
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->safeLoad();
+
 require __DIR__ . '/../src/database.php'; // Inclui a conexão PDO
 
 // Enable error reporting for debugging
