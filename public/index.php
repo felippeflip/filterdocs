@@ -94,15 +94,15 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
     }
 
     // Se a validacao passar, continue com o processamento
-    $nome = mb_strtoupper($data['nome'] ?? '') ?? '';
+    $nome = mb_strtoupper(strval($data['nome'] ?? ''));
     $telefone = $cleanPhoneNumber($data['telefone'] ?? '');
     $telefone1 = $cleanPhoneNumber($data['telefone1'] ?? '');
     $telefone2 = $cleanPhoneNumber($data['telefone2'] ?? '');
     $telefone3 = $cleanPhoneNumber($data['telefone3'] ?? '');
-    $email = strtolower($data['email']) ?? '';
+    $email = strtolower(strval($data['email'] ?? ''));
     $bairro = $data['bairro'] ?? '';
-    $solicitante = mb_strtoupper($data['solicitante'] ?? '') ?? '';
-    $canal_solicitacao = mb_strtoupper($data['canal_solicitacao'] ?? '') ?? '';
+    $solicitante = mb_strtoupper(strval($data['solicitante'] ?? ''));
+    $canal_solicitacao = mb_strtoupper(strval($data['canal_solicitacao'] ?? ''));
 
     // Insere os dados no banco
     $sql = "INSERT INTO blacklist (nome, telefone, telefone1, telefone2, telefone3, email, bairro, solicitante, canal_solicitacao, dt_inclusao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
@@ -173,7 +173,7 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
 
         // 6.2. Se não estiver, verifica o email (coluna E)
         if (!$isBlacklisted) {
-            $email = strtolower($row['E'] ?? '');
+            $email = strtolower(strval($row['E'] ?? ''));
             if (!empty($email) && isset($optimizedBlacklist['emails'][$email])) {
                 $isBlacklisted = true;
             }
@@ -269,15 +269,15 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
 
     foreach ($rows as $row) {
         // Mapear os dados da planilha para as colunas do banco, de acordo com a nova estrutura
-        $nome = mb_strtoupper($row['A']) ?? '';
+        $nome = mb_strtoupper(strval($row['A'] ?? ''));
         $bairro = $row['B'] ?? '';
         $telefone = $cleanPhoneNumber($row['C'] ?? '');
         $telefone1 = $cleanPhoneNumber($row['D'] ?? '');
         $telefone2 = $cleanPhoneNumber($row['E'] ?? '');
         $telefone3 = $cleanPhoneNumber($row['F'] ?? '');
-        $email = strtolower($row['G']) ?? '';
-        $solicitante = mb_strtoupper($row['I']) ?? '';
-        $canalSolicitacao = mb_strtoupper($row['J']) ?? '';
+        $email = strtolower(strval($row['G'] ?? ''));
+        $solicitante = mb_strtoupper(strval($row['I'] ?? ''));
+        $canalSolicitacao = mb_strtoupper(strval($row['J'] ?? ''));
         
         // Verificar se os dados criticos nao estao vazios antes de inserir
         if (!empty($telefone) || !empty($telefone1) || !empty($telefone2) || !empty($telefone3) || !empty($email)) {

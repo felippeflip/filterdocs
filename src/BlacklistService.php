@@ -45,7 +45,7 @@ class BlacklistService
             
             // Adiciona email à lista
             if (!empty($row['email'])) {
-                $emailBlacklist[] = strtolower($row['email']); // Converte para minúsculas para busca
+                $emailBlacklist[] = strtolower(strval($row['email'])); // Converte para minúsculas para busca
             }
             
             // Adiciona nome à lista
