@@ -1,7 +1,13 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /filterdocs/public/
+
+    # Se o domínio aponta direto para a pasta public, a base é apenas /
+    RewriteBase /
+
+    # Se o arquivo solicitado não existe (!-f) e o diretório não existe (!-d)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Redireciona tudo para o index.php
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
