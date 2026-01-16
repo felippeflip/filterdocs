@@ -13,7 +13,15 @@ use Slim\Views\PhpRenderer;
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../src/database.php'; // Inclui a conexão PDO
 
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $app = AppFactory::create();
+
+// Ajuste para rodar corretamente dentro da pasta /filterdocs/public no XAMPP
+$app->setBasePath('/filterdocs/public');
 
 // Adiciona este middleware de roteamento para evitar problemas
 $app->addRoutingMiddleware();

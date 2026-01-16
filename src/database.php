@@ -5,7 +5,7 @@
 $host = 'localhost';
 $db   = 'filterdocs';
 $user = 'root';
-$pass = 'Espcex@2023';
+$pass = 'br1506sK#';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
