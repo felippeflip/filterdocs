@@ -204,21 +204,60 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
         }
     }
 
-    // 8. Salvar e enviar a planilha filtrada para download
+    // 8. Salvar o arquivo temporariamente para download posterior
     $writer = IOFactory::createWriter($filteredSpreadsheet, 'Xlsx');
-    $tempFileName = tempnam(sys_get_temp_dir(), 'filtered_excel_');
-
+    $tempFileName = sys_get_temp_dir() . '/filtered_excel_' . uniqid() . '.xlsx';
     $writer->save($tempFileName);
 
-    // Configurar os headers para o download
+    // 9. Salvar estatísticas e caminho do arquivo na sessão
+    $_SESSION['upload_stats'] = [
+        'totalRows' => count($rows), // Linhas do arquivo original (sem cabeçalho se $rows já estiver sem?) Check logic. $rows includes header initially but array_shift removed it. 
+        // Actually $rows has header removed at line 153: $header = array_shift($rows);
+        // So count($rows) is data rows.
+        'finalRows' => $currentRow - 2, // $currentRow starts at 2. If 1 row added, it becomes 3. 3-2 = 1. Correct.
+        'removedRows' => count($rows) - ($currentRow - 2),
+        'filePath' => $tempFileName
+    ];
+
+    // 10. Redirecionar para a página de resultados
+    return $response->withHeader('Location', $basePath . '/upload/result')->withStatus(302);
+});
+
+// Rota GET para exibir os resultados
+$app->get('/upload/result', function (Request $request, Response $response, $args) use ($basePath) {
+    if (!isset($_SESSION['upload_stats'])) {
+        return $response->withHeader('Location', $basePath . '/')->withStatus(302);
+    }
+
+    $stats = $_SESSION['upload_stats'];
+    $view = new PhpRenderer(__DIR__ . '/../templates/');
+    return $view->render($response, 'result_view.php', [
+        'basePath' => $basePath,
+        'totalRows' => $stats['totalRows'],
+        'removedRows' => $stats['removedRows'],
+        'finalRows' => $stats['finalRows']
+    ]);
+});
+
+// Rota GET para baixar o arquivo
+$app->get('/upload/download', function (Request $request, Response $response, $args) {
+    if (!isset($_SESSION['upload_stats']) || !file_exists($_SESSION['upload_stats']['filePath'])) {
+        $response->getBody()->write("Arquivo não encontrado ou sessão expirada.");
+        return $response->withStatus(404);
+    }
+
+    $filePath = $_SESSION['upload_stats']['filePath'];
+
     $response = $response
         ->withHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         ->withHeader('Content-Disposition', 'attachment; filename="planilha_filtrada.xlsx"')
-        ->withHeader('Content-Length', filesize($tempFileName));
+        ->withHeader('Content-Length', filesize($filePath));
 
-    // Enviar o arquivo e remover o temporário
-    $response->getBody()->write(file_get_contents($tempFileName));
-    unlink($tempFileName);
+    $response->getBody()->write(file_get_contents($filePath));
+
+    // Opcional: Manter o arquivo por um tempo ou apagar logo após o download? 
+    // Se apagar aqui, o usuário não pode baixar de novo se der erro de rede.
+    // Vamos manter por enquanto, o SO limpa tmp eventualmente ou podemos limpar ao fazer novo upload.
 
     return $response;
 });
