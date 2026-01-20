@@ -39,13 +39,7 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 // Manipulador de Erro para rotas não encontradas
 $errorMiddleware->setErrorHandler(
     \Slim\Exception\HttpNotFoundException::class,
-    function (
-        \Psr\Http\Message\ServerRequestInterface $request,
-        \Throwable $exception,
-        bool $displayErrorDetails,
-        bool $logErrors,
-        bool $logErrorDetails
-    ) use ($app, $basePath) {
+    function (\Psr\Http\Message\ServerRequestInterface $request, \Throwable $exception, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails) use ($app, $basePath) {
         $response = $app->getResponseFactory()->createResponse();
         // Redireciona para a rota principal (/) com status 302
         return $response->withHeader('Location', $basePath . '/')->withStatus(302);
@@ -63,19 +57,19 @@ $app->get('/blacklist/create', function (Request $request, Response $response, $
 $app->post('/blacklist', function (Request $request, Response $response, $args) use ($pdo, $basePath) {
 
     // Funcao para limpar caracteres especiais de numeros de telefone
-    $cleanPhoneNumber = function(string $phoneNumber): string {
+    $cleanPhoneNumber = function (string $phoneNumber): string {
         return preg_replace('/[^0-9]/', '', $phoneNumber);
     };
 
     // Funcao para validar o formato do telefone
-    $validatePhoneNumber = function(string $phoneNumber): bool {
+    $validatePhoneNumber = function (string $phoneNumber): bool {
         $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
         return !empty($cleaned) && (strlen($cleaned) >= 10);
     };
 
     // Dados do formulário
     $data = $request->getParsedBody();
-    
+
     // Validar cada campo de telefone se não estiver vazio
     $phoneFields = ['telefone', 'telefone1', 'telefone2', 'telefone3'];
     $invalidFields = [];
@@ -107,14 +101,14 @@ $app->post('/blacklist', function (Request $request, Response $response, $args) 
     // Insere os dados no banco
     $sql = "INSERT INTO blacklist (nome, telefone, telefone1, telefone2, telefone3, email, bairro, solicitante, canal_solicitacao, dt_inclusao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
     $stmt = $pdo->prepare($sql);
-    
+
     try {
         $stmt->execute([$nome, $bairro, $telefone, $telefone1, $telefone2, $telefone3, $email, $solicitante, $canal_solicitacao]);
         $status = 'Item adicionado com sucesso!';
     } catch (\PDOException $e) {
         $status = 'Erro ao adicionar item: ' . $e->getMessage();
     }
-    
+
     // Retorna para o formulário com uma mensagem de status
     $view = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates/');
     return $view->render($response, 'blacklist_form.php', ['status' => $status, 'basePath' => $basePath]);
@@ -150,42 +144,58 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
     $spreadsheet = IOFactory::load($uploadedFile->getFilePath());
     $worksheet = $spreadsheet->getActiveSheet();
     $rows = $worksheet->toArray(null, true, true, true);
-    
+
     // 4. Iniciar a nova planilha para o resultado filtrado
     $filteredSpreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
     $filteredWorksheet = $filteredSpreadsheet->getActiveSheet();
-    
+
     // 5. Adicionar o cabeçalho (primeira linha) na nova planilha
-    $header = array_shift($rows);
+    $header = array_shift($rows); // $header is ['A' => 'Name', 'B' => '...']
     $filteredWorksheet->fromArray($header, null, 'A1');
+
+    // Identificar colunas dinamicamente
+    $colCelular = 'A';
+    $colEmail = 'E';
+
+    foreach ($header as $col => $val) {
+        $val = mb_strtolower(trim($val ?? ''));
+        if (strpos($val, 'celular') !== false || strpos($val, 'telefone') !== false || strpos($val, 'fone') !== false) {
+            $colCelular = $col;
+        }
+        if (strpos($val, 'email') !== false || strpos($val, 'e-mail') !== false || strpos($val, 'mail') !== false) {
+            $colEmail = $col;
+        }
+    }
 
     // 6. Iterar sobre as linhas e filtrar
     $currentRow = 2; // Começa na segunda linha do novo arquivo
     foreach ($rows as $row) {
         // Assume que a linha NÃO está na blacklist
         $isBlacklisted = false;
-        
-        // 6.1. Verifica o número do celular (coluna A)
-        $celular = $row['A'] ?? '';
+
+        // 6.1. Verifica o número do celular (coluna A ou detectada)
+        $celularRaw = $row[$colCelular] ?? '';
+        $celular = BlacklistService::normalizePhoneNumber($celularRaw);
+
         if (!empty($celular) && isset($optimizedBlacklist['phones'][$celular])) {
             $isBlacklisted = true;
         }
 
-        // 6.2. Se não estiver, verifica o email (coluna E)
+        // 6.2. Se não estiver, verifica o email (coluna E ou detectada)
         if (!$isBlacklisted) {
-            $email = strtolower(strval($row['E'] ?? ''));
+            $email = strtolower(trim(strval($row[$colEmail] ?? '')));
             if (!empty($email) && isset($optimizedBlacklist['emails'][$email])) {
                 $isBlacklisted = true;
             }
         }
-        
+
         // 6.3. Se ainda não estiver, verifica o nome (coluna C)
-       // if (!$isBlacklisted) {
-       //     $nome = strtolower($row['C'] ?? '');
-       //     if (!empty($nome) && isset($optimizedBlacklist['names'][$nome])) {
-       //         $isBlacklisted = true;
-       //    }
-       // }
+        // if (!$isBlacklisted) {
+        //     $nome = strtolower($row['C'] ?? '');
+        //     if (!empty($nome) && isset($optimizedBlacklist['names'][$nome])) {
+        //         $isBlacklisted = true;
+        //    }
+        // }
 
         // 7. Se a linha não for encontrada na blacklist, adicione-a à nova planilha
         if (!$isBlacklisted) {
@@ -205,7 +215,7 @@ $app->post('/upload', function (Request $request, Response $response, $args) use
         ->withHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         ->withHeader('Content-Disposition', 'attachment; filename="planilha_filtrada.xlsx"')
         ->withHeader('Content-Length', filesize($tempFileName));
-        
+
     // Enviar o arquivo e remover o temporário
     $response->getBody()->write(file_get_contents($tempFileName));
     unlink($tempFileName);
@@ -239,9 +249,9 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
         $view = new PhpRenderer(__DIR__ . '/../templates/');
         return $view->render($response, 'insert_form.php', ['status' => $status, 'basePath' => $basePath]);
     }
-    
+
     // Funcao para limpar caracteres especiais de numeros de telefone
-    $cleanPhoneNumber = function(string $phoneNumber): string {
+    $cleanPhoneNumber = function (string $phoneNumber): string {
         return preg_replace('/[^0-9]/', '', $phoneNumber);
     };
 
@@ -255,7 +265,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
         $view = new PhpRenderer(__DIR__ . '/../templates/');
         return $view->render($response, 'insert_form.php', ['status' => $status, 'basePath' => $basePath]);
     }
-    
+
     // 3. Preparar a query de inserção para segurança, com as novas colunas
     $sql = "INSERT INTO blacklist (nome, bairro, telefone, telefone1, telefone2, telefone3, email, solicitante, canal_solicitacao, dt_inclusao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
     $stmt = $pdo->prepare($sql);
@@ -263,7 +273,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
     // 4. Pular o cabeçalho e iterar sobre as linhas da planilha
     $totalRows = count($rows);
     $insertedRows = 0;
-    
+
     // Remove o cabeçalho
     array_shift($rows);
 
@@ -278,7 +288,7 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
         $email = strtolower(strval($row['G'] ?? ''));
         $solicitante = mb_strtoupper(strval($row['I'] ?? ''));
         $canalSolicitacao = mb_strtoupper(strval($row['J'] ?? ''));
-        
+
         // Verificar se os dados criticos nao estao vazios antes de inserir
         if (!empty($telefone) || !empty($telefone1) || !empty($telefone2) || !empty($telefone3) || !empty($email)) {
             $stmt->execute([
@@ -295,13 +305,13 @@ $app->post('/blacklist/insert', function (Request $request, Response $response, 
             $insertedRows++;
         }
     }
-    
+
     if ($insertedRows > 0) {
         $_SESSION['status'] = "Processamento concluído. {$insertedRows} registros foram inseridos na blacklist.";
     } else {
         $_SESSION['status'] = "Erro: nenhum registro foi inserido. Verifique o arquivo.";
     }
-    
+
     // Redireciona para a rota GET
     return $response->withHeader('Location', $basePath . '/blacklist/insert/form')->withStatus(302);
 });
